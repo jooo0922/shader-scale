@@ -2,6 +2,8 @@
 precision mediump float;
 #endif
 
+#define PI 3.14159265359 // rotate2d() 함수에서 매개변수로 각도값을 넘겨줄 때, 라디안 단위로 변환해서 넘겨주기 위해 곱하는 PI 값
+
 uniform vec2 u_resolution;
 uniform float u_time;
 
@@ -33,14 +35,19 @@ float cross(vec2 loc, vec2 size, vec2 coord) {
   return max(r1, r2);
 }
 
+// 2D 회전 변환에 필요한 2*2 행렬을 생성하여 리턴해주는 함수 (thebookofshader.com 에서 가져옴.)
+mat2 rotate2d(float _angle) {
+  return mat2(cos(_angle), -sin(_angle), sin(_angle), cos(_angle));
+}
+
 void main() {
   vec2 coord = gl_FragCoord.xy / u_resolution; // 각 픽셀들 좌표값 normalize
   coord = coord * 2. - 1.; // 원점을 좌하단에서 캔버스 정가운데로 옮기기 위해 각 픽셀들 좌표값 Mapping
   coord.x *= u_resolution.x / u_resolution.y; // 캔버스를 resizing 해도 도형 왜곡이 없도록 해상도 비율값을 곱해줌.
 
-  // 각 픽셀들 좌표값에 1 보다 작은 값을 곱해주면 십자가가 커지고, 
-  // 1 보다 큰 값을 곱해주면 십자가가 작아짐. 엄청 간단한 원리.
+  // scale과 rotate를 동시에 적용하는 예제
   coord = coord * sin(u_time);
+  coord = coord * rotate2d(sin(u_time) * PI);
 
   vec3 col = vec3(cross(vec2(.0), vec2(.55, .07), coord));
   gl_FragColor = vec4(col, 1.);
@@ -78,5 +85,4 @@ void main() {
   결론적으로 말하면, scale 변환을 적용하기 위해 곱해주는 값은
   '그 값이 클수록, 좌표계 범위를 키운다' 라고 생각하면 이해가 빠를것임.
   좌표계의 범위가 커진다면, 그 안에 그려지는 십자가는 '시각적으로만' 작아보이는 것임! 
-  
 */
